@@ -2,6 +2,16 @@ import re
 from typing import List
 from textnode import TextNode, TextType
 
+def markdown_to_blocks(markdown: str) -> List[TextNode]:
+    lines = markdown.split("\n\n")
+    res = []
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        res.append(line)
+    return res
+
 def text_to_textnodes(text: str) -> List[TextNode]:
     nodes = split_nodes_delimiter([TextNode(text, TextType.TEXT)], "`", TextType.CODE)
     nodes = split_nodes_delimiter(nodes, "**", TextType.BOLD)

@@ -2,7 +2,7 @@ from enum import Enum
 from htmlnode import LeafNode
 
 class TextType(Enum):
-    text = 1
+    TEXT = 1
     BOLD = 2
     ITALIC = 3
     CODE = 4
@@ -24,7 +24,7 @@ class TextNode:
 
 def text_node_to_html_node(text_node):
     match text_node.text_type:
-        case TextType.text:
+        case TextType.TEXT:
             return LeafNode(tag=None, value=text_node.text)
         case TextType.BOLD:
             return LeafNode(tag="b", value=text_node.text)
@@ -35,4 +35,4 @@ def text_node_to_html_node(text_node):
         case TextType.LINK:
             return LeafNode(tag="a", value=text_node.text, props={"href": text_node.url})
         case TextType.IMAGE:
-            return LeafNode(tag="img", props={"src": text_node.url})
+            return LeafNode(tag="img", value=text_node.text, props={"src": text_node.url})

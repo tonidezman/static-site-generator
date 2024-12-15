@@ -2,6 +2,14 @@ import re
 from typing import List
 from textnode import TextNode, TextType
 
+def text_to_textnodes(text: str) -> List[TextNode]:
+    nodes = split_nodes_delimiter([TextNode(text, TextType.TEXT)], "`", TextType.CODE)
+    nodes = split_nodes_delimiter(nodes, "**", TextType.BOLD)
+    nodes = split_nodes_delimiter(nodes, "*", TextType.ITALIC)
+    nodes = split_nodes_image(nodes)
+    nodes = split_nodes_link(nodes)
+    return nodes
+
 def split_nodes_delimiter(
         nodes: List[TextNode],
         delimiter: str,
@@ -35,7 +43,7 @@ def split_nodes_image(nodes: List[TextNode]) -> List[TextNode]:
             if start > last_index:
                 new_nodes.append(TextNode(text[last_index:start], TextType.TEXT))
             alt_text, url = match.groups()
-            new_nodes.append(TextNode(alt_text, TextType.LINK, url))
+            new_nodes.append(TextNode(alt_text, TextType.IMAGE, url))
             last_index = end
 
         if last_index < len(text):

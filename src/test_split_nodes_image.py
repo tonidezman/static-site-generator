@@ -10,9 +10,9 @@ class TestSplitNodesLink(unittest.TestCase):
 
         expected_nodes = [
             TextNode("This is text with a link ", TextType.TEXT),
-            TextNode("to boot dev cat", TextType.LINK, "https://www.boot.dev/cat.jpg"),
+            TextNode("to boot dev cat", TextType.IMAGE, "https://www.boot.dev/cat.jpg"),
             TextNode(" and ", TextType.TEXT),
-            TextNode("to youtube dog", TextType.LINK, "https://www.youtube.com/@bootdotdev/dog.png"),
+            TextNode("to youtube dog", TextType.IMAGE, "https://www.youtube.com/@bootdotdev/dog.png"),
         ]
         
         self.assertEqual(new_nodes, expected_nodes)

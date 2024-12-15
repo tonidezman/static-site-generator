@@ -1,6 +1,40 @@
 import re
+from enum import Enum
 from typing import List
 from textnode import TextNode, TextType
+
+class BlockType(Enum):
+    HEADING = "heading"
+    LIST = "list"
+    ORDERED_LIST = "ordered_list"
+    UNORDERED_LIST = "unordered_list"
+    PARAGRAPH = "paragraph"
+    CODE = "code"
+    QUOTE = "quote"
+
+def block_to_block_type(block: str) -> BlockType:
+    """
+    Headings start with 1-6 # characters, followed by a space and then the heading text.
+    Code blocks must start with 3 backticks and end with 3 backticks.
+    Every line in a quote block must start with a > character.
+    Every line in an unordered list block must start with a * or - character, followed by a space.
+    Every line in an ordered list block must start with a number followed by a . character and a space. The number must start at 1 and increment by 1 for each line.
+    If none of the above conditions are met, the block is a normal paragraph.
+    """
+    if block.startswith("# "):
+        return BlockType.HEADING
+    elif block.startswith("```") and block.endswith("```"):
+        return BlockType.CODE
+    elif all(line.startswith("> ") for line in block.split("\n")):
+        return BlockType.QUOTE
+    elif all(line.startswith("* ") for line in block.split("\n")):
+        return BlockType.UNORDERED_LIST
+    elif all(line.startswith("- ") for line in block.split("\n")):
+        return BlockType.UNORDERED_LIST
+    elif all(line.startswith(f"{i}. ") for i, line in enumerate(block.split("\n"), 1)):
+        return BlockType.ORDERED_LIST
+    else:
+        return BlockType.PARAGRAPH
 
 def markdown_to_blocks(markdown: str) -> List[TextNode]:
     lines = markdown.split("\n\n")

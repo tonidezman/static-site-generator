@@ -1,5 +1,5 @@
 import unittest
-from helpers import extract_markdown_images, extract_markdown_links
+from helpers import extract_markdown_images, extract_markdown_links, extract_title
 
 class TestExtractMarkupImage(unittest.TestCase):
     def test_extract_markdown_images(self):
@@ -50,3 +50,20 @@ class TestExtractMarkupLink(unittest.TestCase):
         text = "Check this [link](https://example.com/path/to/page@123)"
         expected = [("link", "https://example.com/path/to/page@123")]
         self.assertEqual(extract_markdown_links(text), expected)
+
+class TestExtractTitle(unittest.TestCase):
+
+    def test_valid_title(self):
+        markdown = "# Sample Title"
+        expected = "Sample Title"
+        self.assertEqual(extract_title(markdown), expected)
+
+    def test_no_title(self):
+        markdown = "No title here"
+        with self.assertRaises(ValueError):
+            extract_title(markdown)
+
+    def test_improper_format(self):
+        markdown = "## Not a main title"
+        with self.assertRaises(ValueError):
+            extract_title(markdown)

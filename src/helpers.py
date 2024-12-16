@@ -1,4 +1,5 @@
 import re
+import os
 from enum import Enum
 from typing import List
 from textnode import TextNode, TextType
@@ -12,6 +13,31 @@ class BlockType(Enum):
     PARAGRAPH = 5
     CODE = 6
     QUOTE = 7
+
+def generate_pages_recursive(from_path: str, template_path: str, dest_path: str):
+    if os.path.isfile(from_path):
+        dest_path = os.path.splitext(dest_path)[0] + '.html'
+        generate_page(from_path, template_path, dest_path)
+    elif os.path.isdir(from_path):
+        if not os.path.exists(dest_path):
+            os.makedirs(dest_path)
+        for item in os.listdir(from_path):
+            item_path = os.path.join(from_path, item)
+            relative_item_path = os.path.relpath(item_path, from_path)
+            new_dest_path = os.path.join(dest_path, relative_item_path)
+            generate_pages_recursive(item_path, template_path, new_dest_path)
+
+def generate_page(from_path: str, template_path: str, dest_path: str):
+    with open(from_path, "r") as f:
+        markdown = f.read()
+    with open(template_path, "r") as f:
+        template = f.read()
+    heading = extract_title(markdown)
+    html = markdown_to_html_node(markdown)
+    with open(dest_path, "w") as f:
+        template = template.replace("{{ Title }}", heading)
+        template = template.replace("{{ Content }}", html.to_html())
+        f.write(template)
 
 def block_to_block_type(block: str) -> BlockType:
     if block.startswith(("# ", "## ", "### ", "#### ", "##### ", "###### ")):
@@ -112,6 +138,13 @@ def split_nodes_link(nodes: List[TextNode]) -> List[TextNode]:
             new_nodes.append(TextNode(text[last_index:], TextType.TEXT))
 
     return new_nodes
+
+def extract_title(markdown: str) -> str:
+    if markdown.startswith("# "):
+        # Find the first newline
+        return markdown[2:markdown.index("\n")].strip()
+    else:
+        raise ValueError("No title found")
 
 def extract_markdown_images(text: str) -> List[tuple[str, str]]:
     pattern = r"!\[([\w\s]+)\]\(([\w\:\/\.]+)\)"

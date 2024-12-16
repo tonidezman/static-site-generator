@@ -1,9 +1,12 @@
 import os
 import shutil
 from textnode import TextNode, TextType
+from helpers import generate_pages_recursive
 
 def main():
     copy_static_files_to_public_folder()
+    generate_pages_recursive(from_path="content", template_path="template.html", dest_path="public")
+
 
 def copy_static_files_to_public_folder():
     if not os.path.exists("public"):

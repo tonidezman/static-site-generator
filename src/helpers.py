@@ -2,26 +2,19 @@ import re
 from enum import Enum
 from typing import List
 from textnode import TextNode, TextType
+from htmlnode import HTMLNode, LeafNode, ParentNode
 
 class BlockType(Enum):
-    HEADING = "heading"
-    LIST = "list"
-    ORDERED_LIST = "ordered_list"
-    UNORDERED_LIST = "unordered_list"
-    PARAGRAPH = "paragraph"
-    CODE = "code"
-    QUOTE = "quote"
+    HEADING = 1
+    LIST = 2
+    ORDERED_LIST = 3
+    UNORDERED_LIST = 4
+    PARAGRAPH = 5
+    CODE = 6
+    QUOTE = 7
 
 def block_to_block_type(block: str) -> BlockType:
-    """
-    Headings start with 1-6 # characters, followed by a space and then the heading text.
-    Code blocks must start with 3 backticks and end with 3 backticks.
-    Every line in a quote block must start with a > character.
-    Every line in an unordered list block must start with a * or - character, followed by a space.
-    Every line in an ordered list block must start with a number followed by a . character and a space. The number must start at 1 and increment by 1 for each line.
-    If none of the above conditions are met, the block is a normal paragraph.
-    """
-    if block.startswith("# "):
+    if block.startswith(("# ", "## ", "### ", "#### ", "##### ", "###### ")):
         return BlockType.HEADING
     elif block.startswith("```") and block.endswith("```"):
         return BlockType.CODE
@@ -37,13 +30,13 @@ def block_to_block_type(block: str) -> BlockType:
         return BlockType.PARAGRAPH
 
 def markdown_to_blocks(markdown: str) -> List[TextNode]:
-    lines = markdown.split("\n\n")
+    blocks = markdown.split("\n\n")
     res = []
-    for line in lines:
-        line = line.strip()
-        if not line:
+    for block in blocks:
+        block = block.strip()
+        if block == "":
             continue
-        res.append(line)
+        res.append(block)
     return res
 
 def text_to_textnodes(text: str) -> List[TextNode]:
@@ -127,3 +120,28 @@ def extract_markdown_images(text: str) -> List[tuple[str, str]]:
 def extract_markdown_links(text: str) -> List[tuple[str, str]]:
     pattern = r"\[([\w\s]+)\]\((https:\/\/[\w\.\/@]+)"
     return re.findall(pattern, text)
+
+def markdown_to_html_node(markdown: str) -> ParentNode:
+    blocks = markdown_to_blocks(markdown)
+    nodes = []
+    for block in blocks:
+        block_type = block_to_block_type(block)
+
+        if block_type == BlockType.HEADING:
+            level = block.count("#")
+            tag = f"h{level}"
+            nodes.append(ParentNode(tag=tag, children=text_to_textnodes(block[level + 1:].strip())))
+        elif block_type == BlockType.CODE:
+            nodes.append(ParentNode(tag="pre", children=[LeafNode(tag="code", value=block[3:-3])]))
+        elif block_type == BlockType.QUOTE:
+            nodes.append(ParentNode(tag="blockquote", children=text_to_textnodes(block[2:].strip())))
+        elif block_type == BlockType.UNORDERED_LIST:
+            children = [ParentNode(tag="li", children=text_to_textnodes(line[2:].strip())) for line in block.split("\n")]
+            nodes.append(ParentNode(tag="ul", children=children))
+        elif block_type == BlockType.ORDERED_LIST:
+            children = [ParentNode(tag="li", children=text_to_textnodes(line.split(". ")[1].strip())) for line in block.split("\n")]
+            nodes.append(ParentNode(tag="ol", children=children))
+        else:
+            nodes.append(ParentNode(tag="p", children=text_to_textnodes(block)))
+    root = ParentNode(tag="div", children=nodes)
+    return root

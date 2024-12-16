@@ -7,6 +7,10 @@ class TestBlockToBlockType(unittest.TestCase):
         block = "# Heading"
         self.assertEqual(block_to_block_type(block), BlockType.HEADING)
 
+    def test_heading(self):
+        block = "## Heading"
+        self.assertEqual(block_to_block_type(block), BlockType.HEADING)
+
     def test_code_block(self):
         block = "```\nprint('Hello, World!')\n```"
         self.assertEqual(block_to_block_type(block), BlockType.CODE)
